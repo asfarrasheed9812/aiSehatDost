@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Sehat Dost — Prototype</title>
+<style>
+:root{--navy:#123047;--teal:#087f8c;--mint:#e8f7f4;--ink:#183044;--muted:#617583;--line:#dce7eb;--white:#fff;--red:#b42318;--amber:#8a4b08}
+*{box-sizing:border-box}body{margin:0;background:#f4f8fa;color:var(--ink);font-family:Arial,Helvetica,sans-serif;line-height:1.5}
+header{background:linear-gradient(120deg,#123047,#087f8c);color:white;padding:26px 18px}
+.wrap{max-width:1050px;margin:auto}.top{display:flex;align-items:center;gap:13px}.logo{background:#ffffff24;border:1px solid #ffffff40;border-radius:15px;padding:12px;font-size:25px}
+h1{font-size:clamp(25px,4vw,36px);margin:0}header p{margin:5px 0 0;color:#e0f4f4}
+main{max-width:1050px;margin:22px auto;padding:0 16px;display:grid;grid-template-columns:1.15fr .85fr;gap:18px}
+.card{background:white;border:1px solid var(--line);border-radius:18px;padding:20px;box-shadow:0 5px 18px #12304708}
+h2{font-size:20px;margin:0 0 8px} .muted{color:var(--muted);font-size:14px;margin-top:0}
+label{display:block;font-weight:700;margin:14px 0 6px}textarea,input,select{font:inherit;width:100%;padding:12px;border:1px solid #bfd0d8;border-radius:10px;background:#fff;color:var(--ink)}
+textarea{min-height:112px;resize:vertical}button{border:0;border-radius:10px;background:var(--teal);color:#fff;padding:12px 16px;font:inherit;font-weight:700;cursor:pointer}button:hover{filter:brightness(.94)}button.secondary{background:#e7f2f4;color:var(--navy)}.actions{display:flex;flex-wrap:wrap;gap:9px;margin-top:12px}
+.result{margin-top:16px;border-radius:12px;padding:15px;background:var(--mint);border:1px solid #bfe7df;display:none}.result h3{margin:0 0 7px;font-size:17px}.result p{margin:6px 0}.warning{background:#fff3e8;border:1px solid #f0c79e;color:#6b3909}.emergency{background:#fff0ef;border:1px solid #f0b6b2;color:#7a201b}
+.hospital{padding:13px 0;border-bottom:1px solid var(--line)}.hospital:last-child{border-bottom:0}.hospital strong{display:block}.tag{display:inline-block;background:#e8f7f4;color:#07636b;border-radius:30px;padding:3px 8px;font-size:12px;margin-top:5px}
+.small{font-size:12px;color:var(--muted)}footer{text-align:center;color:var(--muted);font-size:12px;padding:0 18px 24px}.notice{font-size:13px;border-left:4px solid #d99a38;padding:10px 12px;background:#fff8e9;border-radius:5px;margin-top:14px}
+@media(max-width:760px){main{grid-template-columns:1fr}.card{padding:17px}}
+</style>
+</head>
+<body>
+<header><div class="wrap top"><div class="logo">✚</div><div><h1>AI Sehat Dost</h1><p>Health information and care-navigation prototype for Pakistan</p></div></div></header>
+<main>
+<section class="card">
+<h2>Tell us what you’re experiencing</h2>
+<p class="muted">Write in English or Roman Urdu. This demo offers general information only, not a diagnosis.</p>
+<label for="symptoms">What is bothering you?</label>
+<textarea id="symptoms" placeholder="Example: mujhe bukhar aur khansi hai, kal se..."></textarea>
+<div class="actions">
+<button id="check">Get general guidance</button>
+<button class="secondary" id="example">Try demo example</button>
+</div>
+<div id="result" class="result" aria-live="polite"></div>
+<div class="notice"><strong>Safety first:</strong> If symptoms are severe, rapidly worsening, or you feel in immediate danger, seek urgent medical care.</div>
+</section>
+<aside class="card">
+<h2>Find care</h2>
+<p class="muted">Enter a city to view sample listings.</p>
+<label for="city">City</label>
+<input id="city" value="Lahore" placeholder="e.g. Lahore">
+<div class="actions"><button id="find">Show sample facilities</button></div>
+<div id="hospitals" style="margin-top:12px">
+<div class="hospital"><strong>Demo Government Hospital</strong><span class="small">Placeholder listing.</span><br><span class="tag">Sample data</span></div>
+</div>
+</aside>
+</main>
+<footer>Student hackathon prototype • No real patient data collected</footer>
+<script>
+const $ = id => document.getElementById(id);
+
+$("check").onclick = async () => {
+  const s = $("symptoms").value.trim();
+  if(!s) return;
+  const out = $("result");
+  out.style.display = "block";
+  out.className = "result";
+  out.innerHTML = "<h3>Soch raha hoon...</h3>";
+  const fd = new FormData();
+  fd.append("message", s);
+  try {
+    const res = await fetch("http://127.0.0.1:8000/chat", {method:"POST", body:fd});
+    const data = await res.json();
+    out.innerHTML = "<h3>AI Sehat Dost:</h3><p>" + data.reply + "</p>";
+  } catch(e) {
+    out.innerHTML = "<h3>Error:</h3><p>Backend chal raha hai? Terminal check karo.</p>";
+  }
+};
+
+$("example").onclick = () => {
+  $("symptoms").value = "Mujhe kal se bukhar aur khansi hai";
+  $("check").click();
+};
+
+$("find").onclick = () => {
+ const city = $("city").value.trim() || "your city";
+ $("hospitals").innerHTML = `<div class="hospital"><strong>${city} — Government hospital (demo)</strong><span class="small">Placeholder only.</span></div>`;
+};
+</script>
+</body>
+</html>
